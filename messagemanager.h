@@ -1,7 +1,9 @@
 #ifndef UNITER_MESSAGING_MESSAGEMANAGER_H
 #define UNITER_MESSAGING_MESSAGEMANAGER_H
 
-#include "messageobserver.h"
+#include <contract/unitermessage.h>
+
+#include <QObject>
 
 #include <cstdint>
 #include <map>
@@ -9,14 +11,40 @@
 
 namespace messaging {
 
-class MessageManager {
+class EventMessage;
+class QueryMessage;
+
+class MessageManager : public QObject {
+    Q_OBJECT
 public:
-    std::shared_ptr<MessageObserver> track(std::shared_ptr<contract::UniterMessage> message);
-    bool routeIncomingDirectResponse(std::shared_ptr<contract::UniterMessage> message);
+    static MessageManager& instance() {
+        static MessageManager instance;
+        return instance;
+    }
+
+    MessageManager(const MessageManager&) = delete;
+    MessageManager& operator=(const MessageManager&) = delete;
+    MessageManager(MessageManager&&) = delete;
+    MessageManager& operator=(MessageManager&&) = delete;
+    ~MessageManager() override = default;
+
+    void query(std::shared_ptr<QueryMessage> message);
+    void sendMessage(std::shared_ptr<EventMessage> message);
 
 private:
-    uint64_t nextSequenceId_ = 1;
-    std::map<uint64_t, std::shared_ptr<MessageObserver>> observers_;
+    MessageManager();
+
+    friend class QueryMessage;
+    friend class EventMessage;
+
+    uint64_t sequence_id{0};
+    std::map<uint64_t, std::weak_ptr<QueryMessage>> queries;
+
+public slots:
+    void onRecvUniterMessage(std::shared_ptr<contract::UniterMessage> message);
+
+signals:
+    void signalSendMessage(std::shared_ptr<contract::UniterMessage> message);
 };
 
 } // namespace messaging

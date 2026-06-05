@@ -1,43 +1,52 @@
 #include "messagemanager.h"
 
-#include <utility>
+#include "eventmessage.h"
+#include "querymessage.h"
 
 namespace messaging {
 
-std::shared_ptr<MessageObserver> MessageManager::track(std::shared_ptr<contract::UniterMessage> message) {
-    if (!message) {
-        return nullptr;
-    }
-
-    const auto sequenceId = nextSequenceId_++;
-    message->sequence_id = sequenceId;
-
-    auto observer = std::make_shared<MessageObserver>(sequenceId);
-    observers_.emplace(sequenceId, observer);
-    return observer;
+MessageManager::MessageManager()
+    : QObject(nullptr) {
 }
 
-bool MessageManager::routeIncomingDirectResponse(std::shared_ptr<contract::UniterMessage> message) {
+void MessageManager::query(std::shared_ptr<QueryMessage> message) {
+    if (!message || !message->message()) {
+        return;
+    }
+
+    const auto id = ++sequence_id;
+    message->setSequenceId(id);
+    queries[id] = message;
+    emit signalSendMessage(message->message());
+}
+
+void MessageManager::sendMessage(std::shared_ptr<EventMessage> message) {
+    if (!message || !message->message()) {
+        return;
+    }
+
+    emit signalSendMessage(message->message());
+    message->notify_sent();
+}
+
+void MessageManager::onRecvUniterMessage(std::shared_ptr<contract::UniterMessage> message) {
     if (!message || !message->sequence_id) {
-        return false;
+        return;
     }
 
-    auto it = observers_.find(*message->sequence_id);
-    if (it == observers_.end()) {
-        return false;
+    auto it = queries.find(*message->sequence_id);
+    if (it == queries.end()) {
+        return;
     }
 
-    auto observer = it->second;
-    observers_.erase(it);
-
-    if (message->status == contract::MessageStatus::ERROR ||
-        message->error != contract::ErrorCode::SUCCESS) {
-        observer->recordError(std::move(message));
-    } else {
-        observer->recordResponse(std::move(message));
+    auto query = it->second.lock();
+    queries.erase(it);
+    if (!query) {
+        return;
     }
 
-    return true;
+    query->setResponse(std::move(message));
+    query->notify_received();
 }
 
 } // namespace messaging
