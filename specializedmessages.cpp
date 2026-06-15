@@ -4,6 +4,7 @@
 
 #include <contract/uniterprotocol.h>
 
+#include <stdexcept>
 #include <optional>
 #include <utility>
 
@@ -15,6 +16,10 @@ std::shared_ptr<contract::UniterMessage> makeCrudMessage(
     contract::CrudAction action,
     contract::MessageStatus status,
     std::shared_ptr<contract::ResourceAbstract> resource) {
+    if (resource && resource->key.subsystem.subsystem == contract::Subsystem::LOCAL) {
+        throw std::invalid_argument("Local resources cannot be sent through CRUD messaging");
+    }
+
     auto message = std::make_shared<contract::UniterMessage>();
     message->subsystem = resource ? resource->key.subsystem.subsystem : contract::Subsystem::PROTOCOL;
     message->gensubsystemid = resource && resource->key.subsystem.has_genid()
