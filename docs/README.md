@@ -10,3 +10,5 @@ Messaging helpers for Uniter request creation, one-way events, and local direct-
 Use `QueryMessage` subclasses for direct request/response traffic. Use `EventMessage` subclasses for one-way messages that should be sent without response tracking.
 
 Specialized messages live in `specializedmessages.h`: CRUD query/event messages, transaction queries, and MinIO file queries.
+
+Related stack documentation: [Project stack](../../../docs/project-stack.md).
