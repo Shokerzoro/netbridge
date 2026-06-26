@@ -2,35 +2,35 @@
 include(cmake/sources.cmake)
 
 # Target
-if(MESSAGING_COMPILE_SOURCES)
-    add_library(messaging
-        ${MESSAGING_SOURCES}
+if(SERVERBRIGE_COMPILE_SOURCES)
+    add_library(serverbrige
+        ${SERVERBRIGE_SOURCES}
     )
-    set(MESSAGING_TARGET_SCOPE PUBLIC)
+    set(SERVERBRIGE_TARGET_SCOPE PUBLIC)
 else()
-    add_library(messaging INTERFACE)
-    set(MESSAGING_TARGET_SCOPE INTERFACE)
+    add_library(serverbrige INTERFACE)
+    set(SERVERBRIGE_TARGET_SCOPE INTERFACE)
 endif()
 
-target_compile_features(messaging ${MESSAGING_TARGET_SCOPE} cxx_std_17)
+target_compile_features(serverbrige ${SERVERBRIGE_TARGET_SCOPE} cxx_std_17)
 
 # Angle Includes
 include(cmake/include.cmake)
 
-target_include_directories(messaging
-    ${MESSAGING_TARGET_SCOPE}
-        ${MESSAGING_INCLUDE}
+target_include_directories(serverbrige
+    ${SERVERBRIGE_TARGET_SCOPE}
+        ${SERVERBRIGE_INCLUDE}
 )
 
 # Linkage
-target_link_libraries(messaging
-    ${MESSAGING_TARGET_SCOPE}
-        contract
+target_link_libraries(serverbrige
+    ${SERVERBRIGE_TARGET_SCOPE}
+        sharedmodel
 )
 
 # DevKit Usage
-if(MESSAGING_COMPILE_SOURCES AND COMMAND devkit_finalize)
-    devkit_finalize(messaging)
+if(SERVERBRIGE_COMPILE_SOURCES AND COMMAND devkit_finalize)
+    devkit_finalize(serverbrige)
 endif()
 
 # Tests

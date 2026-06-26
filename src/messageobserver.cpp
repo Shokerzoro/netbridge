@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace messaging {
+namespace serverbrige {
 
 MessageObserver::MessageObserver(uint64_t expectedSequenceId)
     : expectedSequenceId_(expectedSequenceId) {
@@ -16,16 +16,16 @@ MessageObserver::State MessageObserver::state() const {
     return state_;
 }
 
-const std::shared_ptr<contract::UniterMessage>& MessageObserver::response() const {
+const std::shared_ptr<sharedmodel::UniterMessage>& MessageObserver::response() const {
     return response_;
 }
 
-void MessageObserver::recordResponse(std::shared_ptr<contract::UniterMessage> message) {
+void MessageObserver::recordResponse(std::shared_ptr<sharedmodel::UniterMessage> message) {
     response_ = std::move(message);
     state_ = State::Success;
 }
 
-void MessageObserver::recordError(std::shared_ptr<contract::UniterMessage> message) {
+void MessageObserver::recordError(std::shared_ptr<sharedmodel::UniterMessage> message) {
     response_ = std::move(message);
     state_ = State::Error;
 }
@@ -34,4 +34,4 @@ void MessageObserver::recordTimeout() {
     state_ = State::Timeout;
 }
 
-} // namespace messaging
+} // namespace serverbrige

@@ -4,9 +4,9 @@
 
 #include <utility>
 
-namespace messaging {
+namespace serverbrige {
 
-std::shared_ptr<QueryMessage> QueryMessage::create(std::shared_ptr<contract::UniterMessage> message) {
+std::shared_ptr<QueryMessage> QueryMessage::create(std::shared_ptr<sharedmodel::UniterMessage> message) {
     std::shared_ptr<QueryMessage> query{new QueryMessage(std::move(message))};
     MessageManager::instance().query(query);
     if (!query->message() || !query->message()->sequence_id) {
@@ -15,7 +15,7 @@ std::shared_ptr<QueryMessage> QueryMessage::create(std::shared_ptr<contract::Uni
     return query;
 }
 
-QueryMessage::QueryMessage(std::shared_ptr<contract::UniterMessage> message)
+QueryMessage::QueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
     : QObject(nullptr),
       message_(std::move(message)) {
 }
@@ -25,8 +25,8 @@ void QueryMessage::setSequenceId(uint64_t id) {
     message_->sequence_id = id;
 }
 
-void QueryMessage::setResponse(std::shared_ptr<contract::UniterMessage> message) {
+void QueryMessage::setResponse(std::shared_ptr<sharedmodel::UniterMessage> message) {
     response_ = std::move(message);
 }
 
-} // namespace messaging
+} // namespace serverbrige

@@ -1,7 +1,7 @@
-#ifndef UNITER_MESSAGING_MESSAGEMANAGER_H
-#define UNITER_MESSAGING_MESSAGEMANAGER_H
+#ifndef UNITER_SERVERBRIGE_MESSAGEMANAGER_H
+#define UNITER_SERVERBRIGE_MESSAGEMANAGER_H
 
-#include <contract/unitermessage.h>
+#include <sharedmodel/unitermessage.h>
 
 #include <QObject>
 
@@ -9,7 +9,7 @@
 #include <map>
 #include <memory>
 
-namespace messaging {
+namespace serverbrige {
 
 class EventMessage;
 class QueryMessage;
@@ -41,12 +41,12 @@ private:
     std::map<uint64_t, std::weak_ptr<QueryMessage>> queries;
 
 public slots:
-    void onRecvUniterMessage(std::shared_ptr<contract::UniterMessage> message);
+    void onRecvUniterMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 
 signals:
-    void signalSendMessage(std::shared_ptr<contract::UniterMessage> message);
+    void signalSendMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
-} // namespace messaging
+} // namespace serverbrige
 
-#endif // UNITER_MESSAGING_MESSAGEMANAGER_H
+#endif // UNITER_SERVERBRIGE_MESSAGEMANAGER_H

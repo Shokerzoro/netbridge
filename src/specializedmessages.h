@@ -1,16 +1,16 @@
-#ifndef UNITER_MESSAGING_SPECIALIZEDMESSAGES_H
-#define UNITER_MESSAGING_SPECIALIZEDMESSAGES_H
+#ifndef UNITER_SERVERBRIGE_SPECIALIZEDMESSAGES_H
+#define UNITER_SERVERBRIGE_SPECIALIZEDMESSAGES_H
 
 #include "eventmessage.h"
 #include "querymessage.h"
 
-#include <contract/common/resourceabstract.h>
+#include <sharedmodel/common/resourceabstract.h>
 
 #include <filesystem>
 #include <memory>
 #include <string>
 
-namespace messaging {
+namespace serverbrige {
 
 enum class TransactionAction {
     COMMIT,
@@ -20,21 +20,21 @@ enum class TransactionAction {
 class CrudEventMessage : public EventMessage {
 public:
     static std::shared_ptr<CrudEventMessage> create(
-        contract::CrudAction action,
-        std::shared_ptr<contract::ResourceAbstract> resource);
+        sharedmodel::CrudAction action,
+        std::shared_ptr<sharedmodel::ResourceAbstract> resource);
 
 private:
-    explicit CrudEventMessage(std::shared_ptr<contract::UniterMessage> message);
+    explicit CrudEventMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
 class CrudQueryMessage : public QueryMessage {
 public:
     static std::shared_ptr<CrudQueryMessage> create(
-        contract::CrudAction action,
-        std::shared_ptr<contract::ResourceAbstract> resource);
+        sharedmodel::CrudAction action,
+        std::shared_ptr<sharedmodel::ResourceAbstract> resource);
 
 private:
-    explicit CrudQueryMessage(std::shared_ptr<contract::UniterMessage> message);
+    explicit CrudQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
 class TransactionQueryMessage : public QueryMessage {
@@ -45,7 +45,7 @@ public:
         TransactionAction action);
 
 private:
-    explicit TransactionQueryMessage(std::shared_ptr<contract::UniterMessage> message);
+    explicit TransactionQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
 class PresignedUrlQueryMessage : public QueryMessage {
@@ -53,7 +53,7 @@ public:
     static std::shared_ptr<PresignedUrlQueryMessage> create(const std::string& object);
 
 private:
-    explicit PresignedUrlQueryMessage(std::shared_ptr<contract::UniterMessage> message);
+    explicit PresignedUrlQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
 class DownloadFileQueryMessage : public QueryMessage {
@@ -63,7 +63,7 @@ public:
         const std::string& presignedUrl);
 
 private:
-    explicit DownloadFileQueryMessage(std::shared_ptr<contract::UniterMessage> message);
+    explicit DownloadFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
 class UploadFileQueryMessage : public QueryMessage {
@@ -74,9 +74,9 @@ public:
         const std::filesystem::path& localPath);
 
 private:
-    explicit UploadFileQueryMessage(std::shared_ptr<contract::UniterMessage> message);
+    explicit UploadFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
-} // namespace messaging
+} // namespace serverbrige
 
-#endif // UNITER_MESSAGING_SPECIALIZEDMESSAGES_H
+#endif // UNITER_SERVERBRIGE_SPECIALIZEDMESSAGES_H

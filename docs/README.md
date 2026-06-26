@@ -1,4 +1,4 @@
-# uniter-messaging
+# uniter-serverbrige
 
 [Client and server communication](client-server.md) documents the shared
 request/response and notification flow.

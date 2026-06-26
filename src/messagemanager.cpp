@@ -3,7 +3,7 @@
 #include "eventmessage.h"
 #include "querymessage.h"
 
-namespace messaging {
+namespace serverbrige {
 
 MessageManager::MessageManager()
     : QObject(nullptr) {
@@ -29,7 +29,7 @@ void MessageManager::sendMessage(std::shared_ptr<EventMessage> message) {
     message->notify_sent();
 }
 
-void MessageManager::onRecvUniterMessage(std::shared_ptr<contract::UniterMessage> message) {
+void MessageManager::onRecvUniterMessage(std::shared_ptr<sharedmodel::UniterMessage> message) {
     if (!message || !message->sequence_id) {
         return;
     }
@@ -49,4 +49,4 @@ void MessageManager::onRecvUniterMessage(std::shared_ptr<contract::UniterMessage
     query->notify_received();
 }
 
-} // namespace messaging
+} // namespace serverbrige

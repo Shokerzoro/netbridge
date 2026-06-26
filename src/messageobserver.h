@@ -1,12 +1,12 @@
-#ifndef UNITER_MESSAGING_MESSAGEOBSERVER_H
-#define UNITER_MESSAGING_MESSAGEOBSERVER_H
+#ifndef UNITER_SERVERBRIGE_MESSAGEOBSERVER_H
+#define UNITER_SERVERBRIGE_MESSAGEOBSERVER_H
 
-#include <contract/unitermessage.h>
+#include <sharedmodel/unitermessage.h>
 
 #include <cstdint>
 #include <memory>
 
-namespace messaging {
+namespace serverbrige {
 
 class MessageObserver {
 public:
@@ -21,18 +21,18 @@ public:
 
     uint64_t expectedSequenceId() const;
     State state() const;
-    const std::shared_ptr<contract::UniterMessage>& response() const;
+    const std::shared_ptr<sharedmodel::UniterMessage>& response() const;
 
-    void recordResponse(std::shared_ptr<contract::UniterMessage> message);
-    void recordError(std::shared_ptr<contract::UniterMessage> message);
+    void recordResponse(std::shared_ptr<sharedmodel::UniterMessage> message);
+    void recordError(std::shared_ptr<sharedmodel::UniterMessage> message);
     void recordTimeout();
 
 private:
     uint64_t expectedSequenceId_;
     State state_ = State::Pending;
-    std::shared_ptr<contract::UniterMessage> response_;
+    std::shared_ptr<sharedmodel::UniterMessage> response_;
 };
 
-} // namespace messaging
+} // namespace serverbrige
 
-#endif // UNITER_MESSAGING_MESSAGEOBSERVER_H
+#endif // UNITER_SERVERBRIGE_MESSAGEOBSERVER_H

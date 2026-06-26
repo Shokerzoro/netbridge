@@ -1,17 +1,17 @@
-file(GLOB_RECURSE MESSAGING_TEST_SOURCES CONFIGURE_DEPENDS
+file(GLOB_RECURSE SERVERBRIGE_TEST_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp"
 )
 
-if(MESSAGING_TEST_SOURCES)
-    add_executable(messaging_tests
-        ${MESSAGING_TEST_SOURCES}
+if(SERVERBRIGE_TEST_SOURCES)
+    add_executable(serverbrige_tests
+        ${SERVERBRIGE_TEST_SOURCES}
     )
 
-    target_link_libraries(messaging_tests
+    target_link_libraries(serverbrige_tests
         PRIVATE
             GTest::gtest_main
-            messaging
+            serverbrige
     )
 
-    uniter_register_gtest(messaging_tests)
+    uniter_register_gtest(serverbrige_tests)
 endif()
