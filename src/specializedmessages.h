@@ -4,7 +4,7 @@
 #include "eventmessage.h"
 #include "querymessage.h"
 
-#include <sharedmodel/common/resourceabstract.h>
+#include <common/resourceabstract.h>
 
 #include <filesystem>
 #include <memory>

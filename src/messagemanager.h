@@ -1,7 +1,7 @@
 #ifndef UNITER_SERVERBRIGE_MESSAGEMANAGER_H
 #define UNITER_SERVERBRIGE_MESSAGEMANAGER_H
 
-#include <sharedmodel/unitermessage.h>
+#include <unitermessage.h>
 
 #include <QObject>
 

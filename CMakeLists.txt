@@ -32,6 +32,14 @@ target_link_libraries(serverbrige
 )
 
 # DevKit Usage
+if(SERVERBRIGE_COMPILE_SOURCES)
+    if(DEBUG_BUILD AND COMMAND devkit_use_qt_shared)
+        devkit_use_qt_shared(serverbrige Core)
+    elseif(RELEASE_BUILD AND COMMAND devkit_use_qt_static)
+        devkit_use_qt_static(serverbrige Core)
+    endif()
+endif()
+
 if(SERVERBRIGE_COMPILE_SOURCES AND COMMAND devkit_finalize)
     devkit_finalize(serverbrige)
 endif()

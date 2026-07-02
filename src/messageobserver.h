@@ -1,7 +1,7 @@
 #ifndef UNITER_SERVERBRIGE_MESSAGEOBSERVER_H
 #define UNITER_SERVERBRIGE_MESSAGEOBSERVER_H
 
-#include <sharedmodel/unitermessage.h>
+#include <unitermessage.h>
 
 #include <cstdint>
 #include <memory>

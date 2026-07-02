@@ -1,7 +1,7 @@
 #ifndef UNITER_SERVERBRIGE_QUERYMESSAGE_H
 #define UNITER_SERVERBRIGE_QUERYMESSAGE_H
 
-#include <sharedmodel/unitermessage.h>
+#include <unitermessage.h>
 
 #include <QObject>
 

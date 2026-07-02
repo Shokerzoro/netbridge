@@ -2,7 +2,7 @@
 
 #include "messagemanager.h"
 
-#include <sharedmodel/uniterprotocol.h>
+#include <uniterprotocol.h>
 
 #include <stdexcept>
 #include <optional>
