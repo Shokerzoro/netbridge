@@ -26,13 +26,13 @@ std::shared_ptr<sharedmodel::UniterMessage> makeCrudMessage(
         ? std::optional<uint64_t>{resource->key.subsystem.get_genid()}
         : std::nullopt;
     message->crudact = action;
-    message->protact = sharedmodel::ProtocolAction::NOTPROTOCOL;
+    message->protact = sharedmodel::CoreAction::NOTCORE;
     message->status = status;
     message->resource = std::move(resource);
     return message;
 }
 
-std::shared_ptr<sharedmodel::UniterMessage> makeProtocolMessage(sharedmodel::ProtocolAction action) {
+std::shared_ptr<sharedmodel::UniterMessage> makeProtocolMessage(sharedmodel::CoreAction action) {
     auto message = std::make_shared<sharedmodel::UniterMessage>();
     message->subsystem = sharedmodel::Subsystem::PROTOCOL;
     message->protact = action;
@@ -71,7 +71,7 @@ CrudQueryMessage::CrudQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> m
 }
 
 std::shared_ptr<TransactionQueryMessage> TransactionQueryMessage::createBegin(const std::string& transactionId) {
-    auto message = makeProtocolMessage(sharedmodel::ProtocolAction::BEGIN_TRANSACTION);
+    auto message = makeProtocolMessage(sharedmodel::CoreAction::BEGIN_TRANSACTION);
     message->add_data[sharedmodel::AddDataTransactionId] = transactionId;
 
     std::shared_ptr<TransactionQueryMessage> query{new TransactionQueryMessage(std::move(message))};
@@ -82,7 +82,7 @@ std::shared_ptr<TransactionQueryMessage> TransactionQueryMessage::createBegin(co
 std::shared_ptr<TransactionQueryMessage> TransactionQueryMessage::createFinish(
     const std::string& transactionId,
     TransactionAction action) {
-    auto message = makeProtocolMessage(sharedmodel::ProtocolAction::COMMIT_ROLLBACK_TXN);
+    auto message = makeProtocolMessage(sharedmodel::CoreAction::COMMIT_ROLLBACK_TXN);
     message->add_data[sharedmodel::AddDataTransactionId] = transactionId;
     message->add_data[sharedmodel::AddDataTransactionAction] =
         action == TransactionAction::COMMIT
@@ -98,50 +98,53 @@ TransactionQueryMessage::TransactionQueryMessage(std::shared_ptr<sharedmodel::Un
     : QueryMessage(std::move(message)) {
 }
 
-std::shared_ptr<PresignedUrlQueryMessage> PresignedUrlQueryMessage::create(const std::string& object) {
-    auto message = makeProtocolMessage(sharedmodel::ProtocolAction::GET_MINIO_PRESIGNED_URL);
-    message->add_data[sharedmodel::AddDataMinioObject] = object;
+std::shared_ptr<FileAccessQueryMessage> FileAccessQueryMessage::create(
+    const std::string& object,
+    const std::string& accessMode) {
+    auto message = makeProtocolMessage(sharedmodel::CoreAction::FILE_ACCESS);
+    message->add_data[sharedmodel::AddDataFileObject] = object;
+    message->add_data[sharedmodel::AddDataFileAccessMode] = accessMode;
 
-    std::shared_ptr<PresignedUrlQueryMessage> query{new PresignedUrlQueryMessage(std::move(message))};
+    std::shared_ptr<FileAccessQueryMessage> query{new FileAccessQueryMessage(std::move(message))};
     MessageManager::instance().query(query);
     return query->message() && query->message()->sequence_id ? query : nullptr;
 }
 
-PresignedUrlQueryMessage::PresignedUrlQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
+FileAccessQueryMessage::FileAccessQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
     : QueryMessage(std::move(message)) {
 }
 
-std::shared_ptr<DownloadFileQueryMessage> DownloadFileQueryMessage::create(
+std::shared_ptr<GetFileQueryMessage> GetFileQueryMessage::create(
     const std::string& object,
-    const std::string& presignedUrl) {
-    auto message = makeProtocolMessage(sharedmodel::ProtocolAction::GET_MINIO_FILE);
-    message->add_data[sharedmodel::AddDataMinioObject] = object;
-    message->add_data[sharedmodel::AddDataPresignedUrl] = presignedUrl;
+    const std::string& fileAccessUrl) {
+    auto message = makeProtocolMessage(sharedmodel::CoreAction::GET_FILE);
+    message->add_data[sharedmodel::AddDataFileObject] = object;
+    message->add_data[sharedmodel::AddDataFileAccessUrl] = fileAccessUrl;
 
-    std::shared_ptr<DownloadFileQueryMessage> query{new DownloadFileQueryMessage(std::move(message))};
+    std::shared_ptr<GetFileQueryMessage> query{new GetFileQueryMessage(std::move(message))};
     MessageManager::instance().query(query);
     return query->message() && query->message()->sequence_id ? query : nullptr;
 }
 
-DownloadFileQueryMessage::DownloadFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
+GetFileQueryMessage::GetFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
     : QueryMessage(std::move(message)) {
 }
 
-std::shared_ptr<UploadFileQueryMessage> UploadFileQueryMessage::create(
+std::shared_ptr<PutFileQueryMessage> PutFileQueryMessage::create(
     const std::string& object,
-    const std::string& presignedUrl,
+    const std::string& fileAccessUrl,
     const std::filesystem::path& localPath) {
-    auto message = makeProtocolMessage(sharedmodel::ProtocolAction::PUT_MINIO_FILE);
-    message->add_data[sharedmodel::AddDataMinioObject] = object;
-    message->add_data[sharedmodel::AddDataPresignedUrl] = presignedUrl;
+    auto message = makeProtocolMessage(sharedmodel::CoreAction::PUT_FILE);
+    message->add_data[sharedmodel::AddDataFileObject] = object;
+    message->add_data[sharedmodel::AddDataFileAccessUrl] = fileAccessUrl;
     message->add_data[sharedmodel::AddDataLocalPath] = localPath.string();
 
-    std::shared_ptr<UploadFileQueryMessage> query{new UploadFileQueryMessage(std::move(message))};
+    std::shared_ptr<PutFileQueryMessage> query{new PutFileQueryMessage(std::move(message))};
     MessageManager::instance().query(query);
     return query->message() && query->message()->sequence_id ? query : nullptr;
 }
 
-UploadFileQueryMessage::UploadFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
+PutFileQueryMessage::PutFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
     : QueryMessage(std::move(message)) {
 }
 
