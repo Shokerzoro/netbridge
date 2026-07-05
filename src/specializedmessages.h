@@ -48,33 +48,43 @@ private:
     explicit TransactionQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
-class PresignedUrlQueryMessage : public QueryMessage {
+class FileAccessQueryMessage : public QueryMessage {
 public:
-    static std::shared_ptr<PresignedUrlQueryMessage> create(const std::string& object);
+    static std::shared_ptr<FileAccessQueryMessage> create(
+        const std::string& object,
+        const std::string& accessMode);
 
 private:
-    explicit PresignedUrlQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+    explicit FileAccessQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
-class DownloadFileQueryMessage : public QueryMessage {
+class GetFileQueryMessage : public QueryMessage {
 public:
-    static std::shared_ptr<DownloadFileQueryMessage> create(
+    static std::shared_ptr<GetFileQueryMessage> create(
         const std::string& object,
-        const std::string& presignedUrl);
+        const std::string& fileAccessUrl);
 
 private:
-    explicit DownloadFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+    explicit GetFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
-class UploadFileQueryMessage : public QueryMessage {
+class PutFileQueryMessage : public QueryMessage {
 public:
-    static std::shared_ptr<UploadFileQueryMessage> create(
+    static std::shared_ptr<PutFileQueryMessage> create(
         const std::string& object,
-        const std::string& presignedUrl,
+        const std::string& fileAccessUrl,
         const std::filesystem::path& localPath);
 
 private:
-    explicit UploadFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+    explicit PutFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+};
+
+class GetMigrationsQueryMessage : public QueryMessage {
+public:
+    static std::shared_ptr<GetMigrationsQueryMessage> create();
+
+private:
+    explicit GetMigrationsQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
 } // namespace serverbrige
