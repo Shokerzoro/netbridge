@@ -79,6 +79,14 @@ private:
     explicit PutFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
+class GetMigrationsQueryMessage : public QueryMessage {
+public:
+    static std::shared_ptr<GetMigrationsQueryMessage> create();
+
+private:
+    explicit GetMigrationsQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+};
+
 } // namespace serverbrige
 
 #endif // UNITER_SERVERBRIGE_SPECIALIZEDMESSAGES_H

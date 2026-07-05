@@ -148,4 +148,17 @@ PutFileQueryMessage::PutFileQueryMessage(std::shared_ptr<sharedmodel::UniterMess
     : QueryMessage(std::move(message)) {
 }
 
+std::shared_ptr<GetMigrationsQueryMessage> GetMigrationsQueryMessage::create() {
+    auto message = makeProtocolMessage(sharedmodel::ProtocolAction::GET_MIGRATIONS);
+    message->add_data[sharedmodel::AddDataDataModelVersion] = sharedmodel::DataModelVersion;
+
+    std::shared_ptr<GetMigrationsQueryMessage> query{new GetMigrationsQueryMessage(std::move(message))};
+    MessageManager::instance().query(query);
+    return query->message() && query->message()->sequence_id ? query : nullptr;
+}
+
+GetMigrationsQueryMessage::GetMigrationsQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
+    : QueryMessage(std::move(message)) {
+}
+
 } // namespace serverbrige
