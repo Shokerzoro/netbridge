@@ -79,6 +79,14 @@ private:
     explicit PutFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
+class UpdateCheckQueryMessage : public QueryMessage {
+public:
+    static std::shared_ptr<UpdateCheckQueryMessage> create(const std::string& currentVersion = sharedmodel::DataModelVersion);
+
+private:
+    explicit UpdateCheckQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+};
+
 class GetMigrationsQueryMessage : public QueryMessage {
 public:
     static std::shared_ptr<GetMigrationsQueryMessage> create();

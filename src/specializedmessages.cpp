@@ -148,6 +148,19 @@ PutFileQueryMessage::PutFileQueryMessage(std::shared_ptr<sharedmodel::UniterMess
     : QueryMessage(std::move(message)) {
 }
 
+std::shared_ptr<UpdateCheckQueryMessage> UpdateCheckQueryMessage::create(const std::string& currentVersion) {
+    auto message = makeProtocolMessage(sharedmodel::ProtocolAction::UPDATE_CHECK);
+    message->add_data[sharedmodel::AddDataUpdateVersion] = currentVersion;
+
+    std::shared_ptr<UpdateCheckQueryMessage> query{new UpdateCheckQueryMessage(std::move(message))};
+    MessageManager::instance().query(query);
+    return query->message() && query->message()->sequence_id ? query : nullptr;
+}
+
+UpdateCheckQueryMessage::UpdateCheckQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
+    : QueryMessage(std::move(message)) {
+}
+
 std::shared_ptr<GetMigrationsQueryMessage> GetMigrationsQueryMessage::create() {
     auto message = makeProtocolMessage(sharedmodel::ProtocolAction::GET_MIGRATIONS);
     message->add_data[sharedmodel::AddDataDataModelVersion] = sharedmodel::DataModelVersion;
