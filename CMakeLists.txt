@@ -1,47 +1,47 @@
 # Versioning
-project(tenantbridge VERSION 0.2.0 LANGUAGES CXX)
+project(netbridge VERSION 0.3.0 LANGUAGES CXX)
 
 # Sources
 include(cmake/sources.cmake)
 
 # Target
-if(TENANTBRIDGE_COMPILE_SOURCES)
-    add_library(tenantbridge
-        ${TENANTBRIDGE_SOURCES}
+if(NETBRIDGE_COMPILE_SOURCES)
+    add_library(netbridge
+        ${NETBRIDGE_SOURCES}
     )
-    set(TENANTBRIDGE_TARGET_SCOPE PUBLIC)
+    set(NETBRIDGE_TARGET_SCOPE PUBLIC)
 else()
-    add_library(tenantbridge INTERFACE)
-    set(TENANTBRIDGE_TARGET_SCOPE INTERFACE)
+    add_library(netbridge INTERFACE)
+    set(NETBRIDGE_TARGET_SCOPE INTERFACE)
 endif()
 
-target_compile_features(tenantbridge ${TENANTBRIDGE_TARGET_SCOPE} cxx_std_17)
+target_compile_features(netbridge ${NETBRIDGE_TARGET_SCOPE} cxx_std_17)
 
 # Angle Includes
 include(cmake/include.cmake)
 
-target_include_directories(tenantbridge
-    ${TENANTBRIDGE_TARGET_SCOPE}
-        ${TENANTBRIDGE_INCLUDE}
+target_include_directories(netbridge
+    ${NETBRIDGE_TARGET_SCOPE}
+        ${NETBRIDGE_INCLUDE}
 )
 
 # Linkage
-target_link_libraries(tenantbridge
-    ${TENANTBRIDGE_TARGET_SCOPE}
+target_link_libraries(netbridge
+    ${NETBRIDGE_TARGET_SCOPE}
         sharedmodel
 )
 
 # DevKit Usage
-if(TENANTBRIDGE_COMPILE_SOURCES)
+if(NETBRIDGE_COMPILE_SOURCES)
     if(DEBUG_BUILD AND COMMAND devkit_use_qt_shared)
-        devkit_use_qt_shared(tenantbridge Core)
+        devkit_use_qt_shared(netbridge Core)
     elseif(RELEASE_BUILD AND COMMAND devkit_use_qt_static)
-        devkit_use_qt_static(tenantbridge Core)
+        devkit_use_qt_static(netbridge Core)
     endif()
 endif()
 
-if(TENANTBRIDGE_COMPILE_SOURCES AND COMMAND devkit_finalize)
-    devkit_finalize(tenantbridge)
+if(NETBRIDGE_COMPILE_SOURCES AND COMMAND devkit_finalize)
+    devkit_finalize(netbridge)
 endif()
 
 # Tests

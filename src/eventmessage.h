@@ -1,5 +1,5 @@
-#ifndef UNITER_TENANTBRIDGE_EVENTMESSAGE_H
-#define UNITER_TENANTBRIDGE_EVENTMESSAGE_H
+#ifndef UNITER_NETBRIDGE_EVENTMESSAGE_H
+#define UNITER_NETBRIDGE_EVENTMESSAGE_H
 
 #include <unitermessage.h>
 
@@ -7,9 +7,9 @@
 
 #include <memory>
 
-namespace tenantbridge {
+namespace netbridge {
 
-class TenantMessager;
+class NetBridge;
 
 class EventMessage : public QObject {
     Q_OBJECT
@@ -22,7 +22,7 @@ protected:
     explicit EventMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 
 private:
-    friend class TenantMessager;
+    friend class NetBridge;
 
     void notify_sent() { emit signalSent(message_); }
 
@@ -32,6 +32,6 @@ signals:
     void signalSent(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
-} // namespace tenantbridge
+} // namespace netbridge
 
-#endif // UNITER_TENANTBRIDGE_EVENTMESSAGE_H
+#endif // UNITER_NETBRIDGE_EVENTMESSAGE_H
