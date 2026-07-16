@@ -1,17 +1,17 @@
-file(GLOB_RECURSE SERVERBRIGE_TEST_SOURCES CONFIGURE_DEPENDS
+file(GLOB_RECURSE TENANTBRIDGE_TEST_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp"
 )
 
-if(SERVERBRIGE_TEST_SOURCES)
-    add_executable(serverbrige_tests
-        ${SERVERBRIGE_TEST_SOURCES}
+if(TENANTBRIDGE_TEST_SOURCES)
+    add_executable(tenantbridge_tests
+        ${TENANTBRIDGE_TEST_SOURCES}
     )
 
-    target_link_libraries(serverbrige_tests
+    target_link_libraries(tenantbridge_tests
         PRIVATE
             GTest::gtest_main
-            serverbrige
+            tenantbridge
     )
 
-    uniter_register_gtest(serverbrige_tests)
+    uniter_register_gtest(tenantbridge_tests)
 endif()

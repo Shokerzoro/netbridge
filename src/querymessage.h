@@ -1,5 +1,5 @@
-#ifndef UNITER_SERVERBRIGE_QUERYMESSAGE_H
-#define UNITER_SERVERBRIGE_QUERYMESSAGE_H
+#ifndef UNITER_TENANTBRIDGE_QUERYMESSAGE_H
+#define UNITER_TENANTBRIDGE_QUERYMESSAGE_H
 
 #include <unitermessage.h>
 
@@ -8,14 +8,13 @@
 #include <cstdint>
 #include <memory>
 
-namespace serverbrige {
+namespace tenantbridge {
 
-class MessageManager;
+class TenantMessager;
 
 class QueryMessage : public QObject {
     Q_OBJECT
 public:
-    static std::shared_ptr<QueryMessage> create(std::shared_ptr<sharedmodel::UniterMessage> message);
     ~QueryMessage() override = default;
 
     [[nodiscard]] const std::shared_ptr<sharedmodel::UniterMessage>& message() const noexcept { return message_; }
@@ -26,7 +25,7 @@ protected:
     explicit QueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 
 private:
-    friend class MessageManager;
+    friend class TenantMessager;
 
     void setSequenceId(uint64_t id);
     void setResponse(std::shared_ptr<sharedmodel::UniterMessage> message);
@@ -40,6 +39,6 @@ signals:
     void signalReceived(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
-} // namespace serverbrige
+} // namespace tenantbridge
 
-#endif // UNITER_SERVERBRIGE_QUERYMESSAGE_H
+#endif // UNITER_TENANTBRIDGE_QUERYMESSAGE_H

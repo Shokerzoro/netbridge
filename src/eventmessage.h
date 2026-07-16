@@ -1,5 +1,5 @@
-#ifndef UNITER_SERVERBRIGE_EVENTMESSAGE_H
-#define UNITER_SERVERBRIGE_EVENTMESSAGE_H
+#ifndef UNITER_TENANTBRIDGE_EVENTMESSAGE_H
+#define UNITER_TENANTBRIDGE_EVENTMESSAGE_H
 
 #include <unitermessage.h>
 
@@ -7,14 +7,13 @@
 
 #include <memory>
 
-namespace serverbrige {
+namespace tenantbridge {
 
-class MessageManager;
+class TenantMessager;
 
 class EventMessage : public QObject {
     Q_OBJECT
 public:
-    static std::shared_ptr<EventMessage> create(std::shared_ptr<sharedmodel::UniterMessage> message);
     ~EventMessage() override = default;
 
     [[nodiscard]] const std::shared_ptr<sharedmodel::UniterMessage>& message() const noexcept { return message_; }
@@ -23,7 +22,7 @@ protected:
     explicit EventMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 
 private:
-    friend class MessageManager;
+    friend class TenantMessager;
 
     void notify_sent() { emit signalSent(message_); }
 
@@ -33,6 +32,6 @@ signals:
     void signalSent(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
-} // namespace serverbrige
+} // namespace tenantbridge
 
-#endif // UNITER_SERVERBRIGE_EVENTMESSAGE_H
+#endif // UNITER_TENANTBRIDGE_EVENTMESSAGE_H

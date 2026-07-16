@@ -1,92 +1,102 @@
-#ifndef UNITER_SERVERBRIGE_SPECIALIZEDMESSAGES_H
-#define UNITER_SERVERBRIGE_SPECIALIZEDMESSAGES_H
+#ifndef UNITER_TENANTBRIDGE_SPECIALIZEDMESSAGES_H
+#define UNITER_TENANTBRIDGE_SPECIALIZEDMESSAGES_H
 
 #include "eventmessage.h"
 #include "querymessage.h"
 
 #include <common/resourceabstract.h>
 
-#include <filesystem>
+#include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 
-namespace serverbrige {
+namespace tenantbridge {
 
 enum class TransactionAction {
     COMMIT,
     ROLLBACK
 };
 
-class CrudEventMessage : public EventMessage {
+enum class FileAccessMode {
+    READ,
+    WRITE
+};
+
+class GetUserQueryMessage : public QueryMessage {
 public:
-    static std::shared_ptr<CrudEventMessage> create(
-        sharedmodel::CrudAction action,
-        std::shared_ptr<sharedmodel::ResourceAbstract> resource);
+    static std::shared_ptr<GetUserQueryMessage> create();
 
 private:
-    explicit CrudEventMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+    explicit GetUserQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+};
+
+class GetKafkaQueryMessage : public QueryMessage {
+public:
+    static std::shared_ptr<GetKafkaQueryMessage> create(uint64_t kafkaOffset);
+
+private:
+    explicit GetKafkaQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+};
+
+class FullSyncQueryMessage : public QueryMessage {
+public:
+    static std::shared_ptr<FullSyncQueryMessage> create();
+
+private:
+    explicit FullSyncQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+};
+
+class BeginTransactionQueryMessage : public QueryMessage {
+public:
+    static std::shared_ptr<BeginTransactionQueryMessage> create();
+
+private:
+    explicit BeginTransactionQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+};
+
+class EndTransactionQueryMessage : public QueryMessage {
+public:
+    static std::shared_ptr<EndTransactionQueryMessage> create(
+        const std::string& transactionId,
+        TransactionAction action);
+
+private:
+    explicit EndTransactionQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+};
+
+class FileAccessQueryMessage : public QueryMessage {
+public:
+    static std::shared_ptr<FileAccessQueryMessage> create(
+        const std::string& objectKey,
+        FileAccessMode mode);
+
+private:
+    explicit FileAccessQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
 class CrudQueryMessage : public QueryMessage {
 public:
     static std::shared_ptr<CrudQueryMessage> create(
         sharedmodel::CrudAction action,
-        std::shared_ptr<sharedmodel::ResourceAbstract> resource);
+        std::shared_ptr<sharedmodel::ResourceAbstract> resource,
+        std::optional<std::string> transactionId = std::nullopt);
 
 private:
     explicit CrudQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
-class TransactionQueryMessage : public QueryMessage {
+class CrudEventMessage : public EventMessage {
 public:
-    static std::shared_ptr<TransactionQueryMessage> createBegin(const std::string& transactionId);
-    static std::shared_ptr<TransactionQueryMessage> createFinish(
-        const std::string& transactionId,
-        TransactionAction action);
+    static std::shared_ptr<CrudEventMessage> create(
+        sharedmodel::CrudAction action,
+        std::shared_ptr<sharedmodel::ResourceAbstract> resource,
+        std::optional<std::string> transactionId = std::nullopt);
 
 private:
-    explicit TransactionQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+    explicit CrudEventMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
-class FileAccessQueryMessage : public QueryMessage {
-public:
-    static std::shared_ptr<FileAccessQueryMessage> create(
-        const std::string& object,
-        const std::string& accessMode);
+} // namespace tenantbridge
 
-private:
-    explicit FileAccessQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
-};
-
-class GetFileQueryMessage : public QueryMessage {
-public:
-    static std::shared_ptr<GetFileQueryMessage> create(
-        const std::string& object,
-        const std::string& fileAccessUrl);
-
-private:
-    explicit GetFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
-};
-
-class PutFileQueryMessage : public QueryMessage {
-public:
-    static std::shared_ptr<PutFileQueryMessage> create(
-        const std::string& object,
-        const std::string& fileAccessUrl,
-        const std::filesystem::path& localPath);
-
-private:
-    explicit PutFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
-};
-
-class GetMigrationsQueryMessage : public QueryMessage {
-public:
-    static std::shared_ptr<GetMigrationsQueryMessage> create();
-
-private:
-    explicit GetMigrationsQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
-};
-
-} // namespace serverbrige
-
-#endif // UNITER_SERVERBRIGE_SPECIALIZEDMESSAGES_H
+#endif // UNITER_TENANTBRIDGE_SPECIALIZEDMESSAGES_H

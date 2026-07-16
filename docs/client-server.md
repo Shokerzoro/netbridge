@@ -1,23 +1,38 @@
-# Client And Server Communication
+# Tenant And CRUD Communication
 
-The client and server maintain two stable communication channels:
+The desktop uses tenantbridge only for the assigned tenant's direct TLS channel.
+All outgoing messages are specialized `TENANT` queries or `CRUD` queries/events.
 
-- A direct SSL/TLS connection for personal request/response traffic.
-- A Kafka subscription for broadcast notifications.
+## Token lifecycle
 
-The direct SSL/TLS channel carries protocol requests and CUD requests from a single client. The client sends each direct request with a `sequence_id`, and the server replies on the same direct channel with the same `sequence_id`. The `sequence_id` is assigned by `serverbrige::MessageManager` for `serverbrige::QueryMessage` subclasses.
+The application supplies the initial tenant token through
+`TenantMessager::setToken`. This starts a new session and clears pending requests
+from the previous session. Passing an empty token clears the session.
 
-Kafka is the broadcast notification transport. After the server successfully applies a CUD request, it publishes a CUD notification through Kafka so subscribed clients can keep their local databases consistent. Kafka notifications may omit `sequence_id` unless they are causally tied to a direct request.
+`TenantMessager::refreshToken` replaces a non-empty token without clearing
+pending requests, allowing in-flight responses during token overlap. An empty
+refresh value is ignored. The messager overwrites `add_data[token]` immediately
+before dispatch; messages are not emitted while no token is installed.
 
-Files are stored in MinIO. Clients access MinIO only through server-provided presigned URLs, requested over the direct SSL/TLS channel.
+## Query flow
 
-The intended tracked send flow is:
+1. A caller creates a specialized query.
+2. `TenantMessager` validates that it is a supported `TENANT` or `CRUD` request.
+3. The active token and a new `sequence_id` are assigned.
+4. `signalSendMessage` emits the request to the tenant connector.
+5. A terminal `SUCCESS` or `ERROR` response must repeat the sequence ID,
+   endpoint, and action/CRUD action.
+6. Matching responses are stored on the query and emit its `signalReceived`.
 
-1. Caller creates a specialized `QueryMessage`.
-2. `MessageManager` assigns a monotonic local `sequence_id`.
-3. `MessageManager` emits the request over `signalSendMessage`.
-4. Server replies directly with the same `sequence_id`.
-5. `MessageManager` routes the response to the matching `QueryMessage`.
-6. If a CUD operation succeeded, the server broadcasts a Kafka notification.
+Responses from public, Kafka, or file-storage endpoints and mismatched responses
+are ignored.
 
-Business logic can use `serverbrige::CrudQueryMessage` for tracked CREATE/UPDATE/DELETE requests and `serverbrige::CrudEventMessage` for one-way CRUD notifications. One-way messages use `serverbrige::EventMessage` subclasses and are emitted through `MessageManager::signalSendMessage` without local `sequence_id` tracking.
+## Transactional CRUD
+
+`BeginTransactionQueryMessage` starts a transaction and the response supplies
+its ID. CRUD queries or one-way CUD events may carry that ID. The transaction is
+finished using `EndTransactionQueryMessage` with commit or rollback.
+
+One-way CRUD events deliberately have no sequence ID. They are intended for
+operations whose outcome is determined by the surrounding transaction. A READ
+operation always uses `CrudQueryMessage` because it requires a response.

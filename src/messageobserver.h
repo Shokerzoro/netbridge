@@ -1,12 +1,12 @@
-#ifndef UNITER_SERVERBRIGE_MESSAGEOBSERVER_H
-#define UNITER_SERVERBRIGE_MESSAGEOBSERVER_H
+#ifndef UNITER_TENANTBRIDGE_MESSAGEOBSERVER_H
+#define UNITER_TENANTBRIDGE_MESSAGEOBSERVER_H
 
 #include <unitermessage.h>
 
 #include <cstdint>
 #include <memory>
 
-namespace serverbrige {
+namespace tenantbridge {
 
 class MessageObserver {
 public:
@@ -33,6 +33,6 @@ private:
     std::shared_ptr<sharedmodel::UniterMessage> response_;
 };
 
-} // namespace serverbrige
+} // namespace tenantbridge
 
-#endif // UNITER_SERVERBRIGE_MESSAGEOBSERVER_H
+#endif // UNITER_TENANTBRIDGE_MESSAGEOBSERVER_H

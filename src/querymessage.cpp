@@ -1,19 +1,8 @@
 #include "querymessage.h"
 
-#include "messagemanager.h"
-
 #include <utility>
 
-namespace serverbrige {
-
-std::shared_ptr<QueryMessage> QueryMessage::create(std::shared_ptr<sharedmodel::UniterMessage> message) {
-    std::shared_ptr<QueryMessage> query{new QueryMessage(std::move(message))};
-    MessageManager::instance().query(query);
-    if (!query->message() || !query->message()->sequence_id) {
-        return {};
-    }
-    return query;
-}
+namespace tenantbridge {
 
 QueryMessage::QueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
     : QObject(nullptr),
@@ -29,4 +18,4 @@ void QueryMessage::setResponse(std::shared_ptr<sharedmodel::UniterMessage> messa
     response_ = std::move(message);
 }
 
-} // namespace serverbrige
+} // namespace tenantbridge

@@ -1,14 +1,28 @@
-# uniter-serverbrige
+# uniter-tenantbridge
 
-[Client and server communication](client-server.md) documents the shared
-request/response and notification flow.
+`tenantbridge` owns construction and correlation of direct tenant TLS messages
+for `Endpoint::TENANT` and `Endpoint::CRUD`. It does not create public web,
+Kafka-consumer, or local file-storage messages.
 
-Messaging helpers for Uniter request creation, one-way events, and local direct-response tracking.
+`TenantMessager` is the QObject singleton exported for app-level wiring. It owns
+the current tenant access token, assigns local monotonic `sequence_id` values,
+injects the token into every outgoing message, emits messages through
+`signalSendMessage`, and routes matching success/error responses back to pending
+queries.
 
-`MessageManager` is a QObject singleton that owns local monotonic `sequence_id` generation for `QueryMessage` and emits outgoing `UniterMessage` instances through `signalSendMessage`.
+The specialized API covers every tenant action:
 
-Use `QueryMessage` subclasses for direct request/response traffic. Use `EventMessage` subclasses for one-way messages that should be sent without response tracking.
+- `GetUserQueryMessage`
+- `GetKafkaQueryMessage`
+- `FullSyncQueryMessage`
+- `BeginTransactionQueryMessage`
+- `EndTransactionQueryMessage`
+- `FileAccessQueryMessage`
 
-Specialized messages live in `specializedmessages.h`: CRUD query/event messages, transaction queries, and MinIO file queries.
+`CrudQueryMessage` provides tracked CREATE/READ/UPDATE/DELETE requests.
+`CrudEventMessage` provides one-way CREATE/UPDATE/DELETE operations, including
+optional transaction association. READ always requires a query.
 
-Related stack documentation: [Project stack](../../../docs/project-stack.md).
+Public authentication/update requests belong to a future public bridge.
+Presigned URL GET/PUT operations belong to `filetransfer`. Kafka notifications
+are received through the Kafka connector and are not emitted by tenantbridge.
