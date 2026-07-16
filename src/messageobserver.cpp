@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace tenantbridge {
+namespace netbridge {
 
 MessageObserver::MessageObserver(uint64_t expectedSequenceId)
     : expectedSequenceId_(expectedSequenceId) {
@@ -34,4 +34,4 @@ void MessageObserver::recordTimeout() {
     state_ = State::Timeout;
 }
 
-} // namespace tenantbridge
+} // namespace netbridge

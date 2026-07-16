@@ -1,24 +1,25 @@
 # Signal/Slot Export
 
-## Main singleton
+`netbridge::NetBridge::instance()` owns request validation, sequence assignment,
+token injection, dispatch, and response correlation.
 
-| Class | Accessor | Responsibility |
+## Session slots
+
+- `setToken` replaces or clears the tenant session token and clears pending
+  queries.
+- `refreshToken` installs a non-empty replacement token while preserving pending
+  queries.
+
+## Endpoint transport pairs
+
+| Endpoint | Outgoing signal | Incoming slot |
 | --- | --- | --- |
-| `tenantbridge::TenantMessager` | `tenantbridge::TenantMessager::instance()` | Owns tenant token state, outgoing validation, sequence assignment, dispatch, and response correlation. |
+| PUBLIC | `signalSendPublicMessage` | `onReceivePublicMessage` |
+| TENANT | `signalSendTenantMessage` | `onReceiveTenantMessage` |
+| CRUD | `signalSendCrudMessage` | `onReceiveCrudMessage` |
 
-## Exported slots
+Each incoming slot accepts terminal `SUCCESS` or `ERROR` messages only for its
+own endpoint. Matching messages are delivered through the pending
+`QueryMessage::signalReceived` signal.
 
-| Slot | Input | Effect |
-| --- | --- | --- |
-| `setToken(const std::string& token)` | Initial/replacement session token, or empty to clear | Replaces the session token and clears pending queries. |
-| `refreshToken(const std::string& token)` | Non-empty refreshed access token | Replaces the token while preserving pending queries; ignores empty input. |
-| `onRecvUniterMessage(std::shared_ptr<sharedmodel::UniterMessage>)` | Incoming tenant/CRUD terminal response | Routes a matching response to its pending query. |
-
-## Exported signal
-
-| Signal | Payload | Expected receiver |
-| --- | --- | --- |
-| `signalSendMessage(std::shared_ptr<sharedmodel::UniterMessage>)` | Validated tenant or CRUD message with injected token | Tenant TLS connector or app-level protocol router. |
-
-The application owns cross-module signal/slot wiring. Tenantbridge does not wire
-itself directly to public, Kafka, or file-transfer connectors.
+KAFKA and FILESTORAGE messages are not accepted by NetBridge.

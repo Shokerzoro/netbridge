@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace tenantbridge {
+namespace netbridge {
 
 QueryMessage::QueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
     : QObject(nullptr),
@@ -18,4 +18,4 @@ void QueryMessage::setResponse(std::shared_ptr<sharedmodel::UniterMessage> messa
     response_ = std::move(message);
 }
 
-} // namespace tenantbridge
+} // namespace netbridge
