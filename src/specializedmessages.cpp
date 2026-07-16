@@ -1,177 +1,177 @@
 #include "specializedmessages.h"
 
-#include "messagemanager.h"
+#include "tenantmessager.h"
 
 #include <uniterprotocol.h>
 
 #include <stdexcept>
-#include <optional>
 #include <utility>
 
-namespace serverbrige {
+namespace tenantbridge {
 
 namespace {
 
-std::shared_ptr<sharedmodel::UniterMessage> makeCrudMessage(
-    sharedmodel::CrudAction action,
-    sharedmodel::MessageStatus status,
-    std::shared_ptr<sharedmodel::ResourceAbstract> resource) {
-    if (resource && resource->key.subsystem.subsystem == sharedmodel::Subsystem::LOCAL) {
-        throw std::invalid_argument("Local resources cannot be sent through CRUD serverbrige");
-    }
-
+std::shared_ptr<sharedmodel::UniterMessage> makeTenantMessage(sharedmodel::ProtocolAction action) {
     auto message = std::make_shared<sharedmodel::UniterMessage>();
-    message->subsystem = resource ? resource->key.subsystem.subsystem : sharedmodel::Subsystem::PROTOCOL;
-    message->gensubsystemid = resource && resource->key.subsystem.has_genid()
-        ? std::optional<uint64_t>{resource->key.subsystem.get_genid()}
-        : std::nullopt;
-    message->crudact = action;
-    message->protact = sharedmodel::CoreAction::NOTCORE;
-    message->status = status;
-    message->resource = std::move(resource);
-    return message;
-}
-
-std::shared_ptr<sharedmodel::UniterMessage> makeProtocolMessage(sharedmodel::CoreAction action) {
-    auto message = std::make_shared<sharedmodel::UniterMessage>();
+    message->endpoint = sharedmodel::Endpoint::TENANT;
     message->subsystem = sharedmodel::Subsystem::PROTOCOL;
-    message->protact = action;
+    message->crudact = sharedmodel::CrudAction::NOTCRUD;
+    message->action = action;
     message->status = sharedmodel::MessageStatus::REQUEST;
     return message;
 }
 
+std::shared_ptr<sharedmodel::UniterMessage> makeCrudMessage(
+    sharedmodel::CrudAction action,
+    sharedmodel::MessageStatus status,
+    std::shared_ptr<sharedmodel::ResourceAbstract> resource,
+    const std::optional<std::string>& transactionId) {
+    if (action == sharedmodel::CrudAction::NOTCRUD) {
+        throw std::invalid_argument("CRUD action must be specified");
+    }
+    if (!resource) {
+        throw std::invalid_argument("CRUD message requires a resource");
+    }
+    if (resource->key.subsystem.subsystem == sharedmodel::Subsystem::LOCAL) {
+        throw std::invalid_argument("Local resources cannot be sent through tenantbridge");
+    }
+
+    auto message = std::make_shared<sharedmodel::UniterMessage>();
+    message->endpoint = sharedmodel::Endpoint::CRUD;
+    message->subsystem = resource->key.subsystem.subsystem;
+    message->gensubsystemid = resource->key.subsystem.has_genid()
+        ? std::optional<uint64_t>{resource->key.subsystem.get_genid()}
+        : std::nullopt;
+    message->crudact = action;
+    message->action = sharedmodel::ProtocolAction::NONE;
+    message->status = status;
+    message->resource = std::move(resource);
+    if (transactionId && !transactionId->empty()) {
+        message->add_data[sharedmodel::AddDataTransactionId] = *transactionId;
+    }
+    return message;
+}
+
+template <typename QueryT>
+std::shared_ptr<QueryT> submitQuery(std::shared_ptr<QueryT> query) {
+    return TenantMessager::instance().query(query) ? query : nullptr;
+}
+
 } // namespace
 
-std::shared_ptr<CrudEventMessage> CrudEventMessage::create(
-    sharedmodel::CrudAction action,
-    std::shared_ptr<sharedmodel::ResourceAbstract> resource) {
-    std::shared_ptr<CrudEventMessage> event{
-        new CrudEventMessage(makeCrudMessage(action, sharedmodel::MessageStatus::NOTIFICATION, std::move(resource)))
-    };
-    MessageManager::instance().sendMessage(event);
-    return event->message() ? event : nullptr;
+std::shared_ptr<GetUserQueryMessage> GetUserQueryMessage::create() {
+    return submitQuery(std::shared_ptr<GetUserQueryMessage>{
+        new GetUserQueryMessage(makeTenantMessage(sharedmodel::ProtocolAction::GET_USER))});
 }
 
-CrudEventMessage::CrudEventMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
-    : EventMessage(std::move(message)) {
-}
-
-std::shared_ptr<CrudQueryMessage> CrudQueryMessage::create(
-    sharedmodel::CrudAction action,
-    std::shared_ptr<sharedmodel::ResourceAbstract> resource) {
-    std::shared_ptr<CrudQueryMessage> query{
-        new CrudQueryMessage(makeCrudMessage(action, sharedmodel::MessageStatus::REQUEST, std::move(resource)))
-    };
-    MessageManager::instance().query(query);
-    return query->message() && query->message()->sequence_id ? query : nullptr;
-}
-
-CrudQueryMessage::CrudQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
+GetUserQueryMessage::GetUserQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
     : QueryMessage(std::move(message)) {
 }
 
-std::shared_ptr<TransactionQueryMessage> TransactionQueryMessage::createBegin(const std::string& transactionId) {
-    auto message = makeProtocolMessage(sharedmodel::CoreAction::BEGIN_TRANSACTION);
-    message->add_data[sharedmodel::AddDataTransactionId] = transactionId;
-
-    std::shared_ptr<TransactionQueryMessage> query{new TransactionQueryMessage(std::move(message))};
-    MessageManager::instance().query(query);
-    return query->message() && query->message()->sequence_id ? query : nullptr;
+std::shared_ptr<GetKafkaQueryMessage> GetKafkaQueryMessage::create(uint64_t kafkaOffset) {
+    auto message = makeTenantMessage(sharedmodel::ProtocolAction::GET_KAFKA);
+    message->add_data[sharedmodel::AddDataKafkaOffset] = std::to_string(kafkaOffset);
+    return submitQuery(std::shared_ptr<GetKafkaQueryMessage>{new GetKafkaQueryMessage(std::move(message))});
 }
 
-std::shared_ptr<TransactionQueryMessage> TransactionQueryMessage::createFinish(
+GetKafkaQueryMessage::GetKafkaQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
+    : QueryMessage(std::move(message)) {
+}
+
+std::shared_ptr<FullSyncQueryMessage> FullSyncQueryMessage::create() {
+    return submitQuery(std::shared_ptr<FullSyncQueryMessage>{
+        new FullSyncQueryMessage(makeTenantMessage(sharedmodel::ProtocolAction::FULL_SYNC))});
+}
+
+FullSyncQueryMessage::FullSyncQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
+    : QueryMessage(std::move(message)) {
+}
+
+std::shared_ptr<BeginTransactionQueryMessage> BeginTransactionQueryMessage::create() {
+    return submitQuery(std::shared_ptr<BeginTransactionQueryMessage>{
+        new BeginTransactionQueryMessage(makeTenantMessage(sharedmodel::ProtocolAction::BEGIN_TRANSACTION))});
+}
+
+BeginTransactionQueryMessage::BeginTransactionQueryMessage(
+    std::shared_ptr<sharedmodel::UniterMessage> message)
+    : QueryMessage(std::move(message)) {
+}
+
+std::shared_ptr<EndTransactionQueryMessage> EndTransactionQueryMessage::create(
     const std::string& transactionId,
     TransactionAction action) {
-    auto message = makeProtocolMessage(sharedmodel::CoreAction::COMMIT_ROLLBACK_TXN);
+    if (transactionId.empty()) {
+        throw std::invalid_argument("END_TRANSACTION requires a transaction ID");
+    }
+    auto message = makeTenantMessage(sharedmodel::ProtocolAction::END_TRANSACTION);
     message->add_data[sharedmodel::AddDataTransactionId] = transactionId;
     message->add_data[sharedmodel::AddDataTransactionAction] =
         action == TransactionAction::COMMIT
             ? sharedmodel::AddDataTransactionCommit
             : sharedmodel::AddDataTransactionRollback;
-
-    std::shared_ptr<TransactionQueryMessage> query{new TransactionQueryMessage(std::move(message))};
-    MessageManager::instance().query(query);
-    return query->message() && query->message()->sequence_id ? query : nullptr;
+    return submitQuery(std::shared_ptr<EndTransactionQueryMessage>{
+        new EndTransactionQueryMessage(std::move(message))});
 }
 
-TransactionQueryMessage::TransactionQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
+EndTransactionQueryMessage::EndTransactionQueryMessage(
+    std::shared_ptr<sharedmodel::UniterMessage> message)
     : QueryMessage(std::move(message)) {
 }
 
 std::shared_ptr<FileAccessQueryMessage> FileAccessQueryMessage::create(
-    const std::string& object,
-    const std::string& accessMode) {
-    auto message = makeProtocolMessage(sharedmodel::CoreAction::FILE_ACCESS);
-    message->add_data[sharedmodel::AddDataFileObject] = object;
-    message->add_data[sharedmodel::AddDataFileAccessMode] = accessMode;
-
-    std::shared_ptr<FileAccessQueryMessage> query{new FileAccessQueryMessage(std::move(message))};
-    MessageManager::instance().query(query);
-    return query->message() && query->message()->sequence_id ? query : nullptr;
+    const std::string& objectKey,
+    FileAccessMode mode) {
+    if (objectKey.empty()) {
+        throw std::invalid_argument("FILE_ACCESS requires an object key");
+    }
+    auto message = makeTenantMessage(sharedmodel::ProtocolAction::FILE_ACCESS);
+    message->add_data[sharedmodel::AddDataObjectKey] = objectKey;
+    message->add_data[sharedmodel::AddDataFileAccessMode] =
+        mode == FileAccessMode::READ
+            ? sharedmodel::AddDataFileAccessRead
+            : sharedmodel::AddDataFileAccessWrite;
+    return submitQuery(std::shared_ptr<FileAccessQueryMessage>{
+        new FileAccessQueryMessage(std::move(message))});
 }
 
 FileAccessQueryMessage::FileAccessQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
     : QueryMessage(std::move(message)) {
 }
 
-std::shared_ptr<GetFileQueryMessage> GetFileQueryMessage::create(
-    const std::string& object,
-    const std::string& fileAccessUrl) {
-    auto message = makeProtocolMessage(sharedmodel::CoreAction::GET_FILE);
-    message->add_data[sharedmodel::AddDataFileObject] = object;
-    message->add_data[sharedmodel::AddDataFileAccessUrl] = fileAccessUrl;
-
-    std::shared_ptr<GetFileQueryMessage> query{new GetFileQueryMessage(std::move(message))};
-    MessageManager::instance().query(query);
-    return query->message() && query->message()->sequence_id ? query : nullptr;
+std::shared_ptr<CrudQueryMessage> CrudQueryMessage::create(
+    sharedmodel::CrudAction action,
+    std::shared_ptr<sharedmodel::ResourceAbstract> resource,
+    std::optional<std::string> transactionId) {
+    auto message = makeCrudMessage(
+        action,
+        sharedmodel::MessageStatus::REQUEST,
+        std::move(resource),
+        transactionId);
+    return submitQuery(std::shared_ptr<CrudQueryMessage>{new CrudQueryMessage(std::move(message))});
 }
 
-GetFileQueryMessage::GetFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
+CrudQueryMessage::CrudQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
     : QueryMessage(std::move(message)) {
 }
 
-std::shared_ptr<PutFileQueryMessage> PutFileQueryMessage::create(
-    const std::string& object,
-    const std::string& fileAccessUrl,
-    const std::filesystem::path& localPath) {
-    auto message = makeProtocolMessage(sharedmodel::CoreAction::PUT_FILE);
-    message->add_data[sharedmodel::AddDataFileObject] = object;
-    message->add_data[sharedmodel::AddDataFileAccessUrl] = fileAccessUrl;
-    message->add_data[sharedmodel::AddDataLocalPath] = localPath.string();
-
-    std::shared_ptr<PutFileQueryMessage> query{new PutFileQueryMessage(std::move(message))};
-    MessageManager::instance().query(query);
-    return query->message() && query->message()->sequence_id ? query : nullptr;
+std::shared_ptr<CrudEventMessage> CrudEventMessage::create(
+    sharedmodel::CrudAction action,
+    std::shared_ptr<sharedmodel::ResourceAbstract> resource,
+    std::optional<std::string> transactionId) {
+    if (action == sharedmodel::CrudAction::READ) {
+        throw std::invalid_argument("READ requires a tracked CRUD query");
+    }
+    auto message = makeCrudMessage(
+        action,
+        sharedmodel::MessageStatus::NOTIFICATION,
+        std::move(resource),
+        transactionId);
+    std::shared_ptr<CrudEventMessage> event{new CrudEventMessage(std::move(message))};
+    return TenantMessager::instance().sendMessage(event) ? event : nullptr;
 }
 
-PutFileQueryMessage::PutFileQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
-    : QueryMessage(std::move(message)) {
+CrudEventMessage::CrudEventMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
+    : EventMessage(std::move(message)) {
 }
 
-std::shared_ptr<UpdateCheckQueryMessage> UpdateCheckQueryMessage::create(const std::string& currentVersion) {
-    auto message = makeProtocolMessage(sharedmodel::ProtocolAction::UPDATE_CHECK);
-    message->add_data[sharedmodel::AddDataUpdateVersion] = currentVersion;
-
-    std::shared_ptr<UpdateCheckQueryMessage> query{new UpdateCheckQueryMessage(std::move(message))};
-    MessageManager::instance().query(query);
-    return query->message() && query->message()->sequence_id ? query : nullptr;
-}
-
-UpdateCheckQueryMessage::UpdateCheckQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
-    : QueryMessage(std::move(message)) {
-}
-
-std::shared_ptr<GetMigrationsQueryMessage> GetMigrationsQueryMessage::create() {
-    auto message = makeProtocolMessage(sharedmodel::ProtocolAction::GET_MIGRATIONS);
-    message->add_data[sharedmodel::AddDataDataModelVersion] = sharedmodel::DataModelVersion;
-
-    std::shared_ptr<GetMigrationsQueryMessage> query{new GetMigrationsQueryMessage(std::move(message))};
-    MessageManager::instance().query(query);
-    return query->message() && query->message()->sequence_id ? query : nullptr;
-}
-
-GetMigrationsQueryMessage::GetMigrationsQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
-    : QueryMessage(std::move(message)) {
-}
-
-} // namespace serverbrige
+} // namespace tenantbridge

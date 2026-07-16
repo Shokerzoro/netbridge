@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace serverbrige {
+namespace tenantbridge {
 
 MessageObserver::MessageObserver(uint64_t expectedSequenceId)
     : expectedSequenceId_(expectedSequenceId) {
@@ -34,4 +34,4 @@ void MessageObserver::recordTimeout() {
     state_ = State::Timeout;
 }
 
-} // namespace serverbrige
+} // namespace tenantbridge
