@@ -11,6 +11,7 @@ if(NETBRIDGE_TEST_SOURCES)
         PRIVATE
             GTest::gtest_main
             netbridge
+            Qt6::Core
     )
 
     uniter_register_gtest(netbridge_tests)

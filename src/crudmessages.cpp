@@ -19,9 +19,6 @@ std::shared_ptr<sharedmodel::UniterMessage> makeCrudMessage(
     if (!resource) {
         throw std::invalid_argument("CRUD message requires a resource");
     }
-    if (resource->key.subsystem.subsystem == sharedmodel::Subsystem::LOCAL) {
-        throw std::invalid_argument("Local resources cannot be sent through netbridge");
-    }
     if (transactionId && transactionId->empty()) {
         throw std::invalid_argument("Transaction ID cannot be empty");
     }
