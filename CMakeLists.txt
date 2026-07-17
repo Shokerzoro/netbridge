@@ -1,5 +1,5 @@
 # Versioning
-project(netbridge VERSION 0.3.0 LANGUAGES CXX)
+project(netbridge VERSION 0.3.1 LANGUAGES CXX)
 
 # Sources
 include(cmake/sources.cmake)
