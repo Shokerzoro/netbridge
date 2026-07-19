@@ -9,7 +9,7 @@ if(NETBRIDGE_TEST_SOURCES)
 
     target_link_libraries(netbridge_tests
         PRIVATE
-            GTest::gtest_main
+            GTest::gtest
             netbridge
             Qt6::Core
     )
