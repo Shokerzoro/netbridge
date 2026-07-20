@@ -47,7 +47,12 @@ bool isValidPublicRequest(const sharedmodel::UniterMessage& message) {
         case ProtocolAction::GET_UPDATE:
             return hasValue(message, sharedmodel::AddDataAppVersion);
         case ProtocolAction::GET_MIGRATIONS:
-            return hasValue(message, sharedmodel::AddDataDataModelVersion);
+            return hasValue(message, sharedmodel::AddDataDataModelVersion)
+                && hasValue(message, sharedmodel::AddDataMigrationTarget)
+                && (message.add_data.at(sharedmodel::AddDataMigrationTarget)
+                        == sharedmodel::AddDataMigrationTargetLocal
+                    || message.add_data.at(sharedmodel::AddDataMigrationTarget)
+                        == sharedmodel::AddDataMigrationTargetShared);
         case ProtocolAction::FILE_ACCESS:
             return hasValue(message, sharedmodel::AddDataObjectKey) && hasAccessMode(message);
         default:

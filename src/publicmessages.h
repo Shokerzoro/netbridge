@@ -53,11 +53,20 @@ private:
     explicit GetUpdateQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
-class GetMigrationsQueryMessage : public QueryMessage {
+class GetLocalMigrationsQueryMessage : public QueryMessage {
 public:
-    static std::shared_ptr<GetMigrationsQueryMessage> create();
+    static std::shared_ptr<GetLocalMigrationsQueryMessage> create(
+        const std::string& dataModelVersion);
 private:
-    explicit GetMigrationsQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+    explicit GetLocalMigrationsQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
+};
+
+class GetSharedMigrationsQueryMessage : public QueryMessage {
+public:
+    static std::shared_ptr<GetSharedMigrationsQueryMessage> create(
+        const std::string& dataModelVersion);
+private:
+    explicit GetSharedMigrationsQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message);
 };
 
 class PublicFileAccessQueryMessage : public QueryMessage {

@@ -124,12 +124,21 @@ TEST_F(NetBridgeTest, CreatesEveryPublicUpdateAndFileAccessRequest) {
     expectProtocolRequest(update, sharedmodel::Endpoint::PUBLIC, sharedmodel::ProtocolAction::GET_UPDATE);
     EXPECT_EQ(update->message()->add_data.at(sharedmodel::AddDataAppVersion), "1.2.3");
 
-    auto migrations = GetMigrationsQueryMessage::create();
+    auto localMigrations = GetLocalMigrationsQueryMessage::create("0.2.0");
     expectProtocolRequest(
-        migrations, sharedmodel::Endpoint::PUBLIC, sharedmodel::ProtocolAction::GET_MIGRATIONS);
+        localMigrations, sharedmodel::Endpoint::PUBLIC, sharedmodel::ProtocolAction::GET_MIGRATIONS);
     EXPECT_EQ(
-        migrations->message()->add_data.at(sharedmodel::AddDataDataModelVersion),
-        sharedmodel::DataModelVersion);
+        localMigrations->message()->add_data.at(sharedmodel::AddDataDataModelVersion), "0.2.0");
+    EXPECT_EQ(
+        localMigrations->message()->add_data.at(sharedmodel::AddDataMigrationTarget), "local");
+
+    auto sharedMigrations = GetSharedMigrationsQueryMessage::create("0.4.0");
+    expectProtocolRequest(
+        sharedMigrations, sharedmodel::Endpoint::PUBLIC, sharedmodel::ProtocolAction::GET_MIGRATIONS);
+    EXPECT_EQ(
+        sharedMigrations->message()->add_data.at(sharedmodel::AddDataDataModelVersion), "0.4.0");
+    EXPECT_EQ(
+        sharedMigrations->message()->add_data.at(sharedmodel::AddDataMigrationTarget), "shared");
 
     auto file = PublicFileAccessQueryMessage::create("manifest.xml", PublicFileAccessMode::READ);
     expectProtocolRequest(file, sharedmodel::Endpoint::PUBLIC, sharedmodel::ProtocolAction::FILE_ACCESS);
@@ -262,6 +271,8 @@ TEST_F(NetBridgeTest, SpecializedFactoriesRejectInvalidArguments) {
     EXPECT_THROW(RefreshTokenQueryMessage::create({}), std::invalid_argument);
     EXPECT_THROW(CreateEmployeeQueryMessage::create({}, "name"), std::invalid_argument);
     EXPECT_THROW(GetUpdateQueryMessage::create({}), std::invalid_argument);
+    EXPECT_THROW(GetLocalMigrationsQueryMessage::create({}), std::invalid_argument);
+    EXPECT_THROW(GetSharedMigrationsQueryMessage::create({}), std::invalid_argument);
     EXPECT_THROW(
         PublicFileAccessQueryMessage::create({}, PublicFileAccessMode::READ),
         std::invalid_argument);

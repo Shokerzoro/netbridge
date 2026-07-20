@@ -108,14 +108,37 @@ std::shared_ptr<GetUpdateQueryMessage> GetUpdateQueryMessage::create(const std::
 GetUpdateQueryMessage::GetUpdateQueryMessage(std::shared_ptr<sharedmodel::UniterMessage> message)
     : QueryMessage(std::move(message)) {}
 
-std::shared_ptr<GetMigrationsQueryMessage> GetMigrationsQueryMessage::create() {
+std::shared_ptr<sharedmodel::UniterMessage> makeMigrationsMessage(
+    const std::string& dataModelVersion,
+    const char* target) {
+    requireValue(dataModelVersion, "GET_MIGRATIONS requires a data model version");
     auto message = makePublicMessage(sharedmodel::ProtocolAction::GET_MIGRATIONS);
-    message->add_data[sharedmodel::AddDataDataModelVersion] = sharedmodel::DataModelVersion;
-    return submitQuery(std::shared_ptr<GetMigrationsQueryMessage>{
-        new GetMigrationsQueryMessage(std::move(message))});
+    message->add_data[sharedmodel::AddDataDataModelVersion] = dataModelVersion;
+    message->add_data[sharedmodel::AddDataMigrationTarget] = target;
+    return message;
 }
 
-GetMigrationsQueryMessage::GetMigrationsQueryMessage(
+std::shared_ptr<GetLocalMigrationsQueryMessage> GetLocalMigrationsQueryMessage::create(
+    const std::string& dataModelVersion) {
+    auto message = makeMigrationsMessage(
+        dataModelVersion, sharedmodel::AddDataMigrationTargetLocal);
+    return submitQuery(std::shared_ptr<GetLocalMigrationsQueryMessage>{
+        new GetLocalMigrationsQueryMessage(std::move(message))});
+}
+
+GetLocalMigrationsQueryMessage::GetLocalMigrationsQueryMessage(
+    std::shared_ptr<sharedmodel::UniterMessage> message)
+    : QueryMessage(std::move(message)) {}
+
+std::shared_ptr<GetSharedMigrationsQueryMessage> GetSharedMigrationsQueryMessage::create(
+    const std::string& dataModelVersion) {
+    auto message = makeMigrationsMessage(
+        dataModelVersion, sharedmodel::AddDataMigrationTargetShared);
+    return submitQuery(std::shared_ptr<GetSharedMigrationsQueryMessage>{
+        new GetSharedMigrationsQueryMessage(std::move(message))});
+}
+
+GetSharedMigrationsQueryMessage::GetSharedMigrationsQueryMessage(
     std::shared_ptr<sharedmodel::UniterMessage> message)
     : QueryMessage(std::move(message)) {}
 
