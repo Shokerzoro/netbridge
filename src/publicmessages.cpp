@@ -16,12 +16,12 @@ void requireValue(const std::string& value, const char* description) {
     }
 }
 
-std::shared_ptr<sharedmodel::UniterMessage> makePublicMessage(sharedmodel::ProtocolAction action) {
+std::shared_ptr<sharedmodel::UniterMessage> makePublicMessage(sharedmodel::PublicAction action) {
     auto message = std::make_shared<sharedmodel::UniterMessage>();
     message->endpoint = sharedmodel::Endpoint::PUBLIC;
     message->subsystem = sharedmodel::Subsystem::PROTOCOL;
     message->crudact = sharedmodel::CrudAction::NOTCRUD;
-    message->action = action;
+    message->publicact = action;
     message->status = sharedmodel::MessageStatus::REQUEST;
     return message;
 }
@@ -38,7 +38,7 @@ std::shared_ptr<GetTokenQueryMessage> GetTokenQueryMessage::create(
     const std::string& password) {
     requireValue(login, "GET_TOKEN requires a login");
     requireValue(password, "GET_TOKEN requires a password");
-    auto message = makePublicMessage(sharedmodel::ProtocolAction::GET_TOKEN);
+    auto message = makePublicMessage(sharedmodel::PublicAction::GET_TOKEN);
     message->add_data[sharedmodel::AddDataLogin] = login;
     message->add_data[sharedmodel::AddDataPassword] = password;
     return submitQuery(std::shared_ptr<GetTokenQueryMessage>{new GetTokenQueryMessage(std::move(message))});
@@ -50,7 +50,7 @@ GetTokenQueryMessage::GetTokenQueryMessage(std::shared_ptr<sharedmodel::UniterMe
 std::shared_ptr<RefreshTokenQueryMessage> RefreshTokenQueryMessage::create(
     const std::string& refreshToken) {
     requireValue(refreshToken, "REFRESH_TOKEN requires a refresh token");
-    auto message = makePublicMessage(sharedmodel::ProtocolAction::REFRESH_TOKEN);
+    auto message = makePublicMessage(sharedmodel::PublicAction::REFRESH_TOKEN);
     message->add_data[sharedmodel::AddDataRefreshToken] = refreshToken;
     return submitQuery(std::shared_ptr<RefreshTokenQueryMessage>{
         new RefreshTokenQueryMessage(std::move(message))});
@@ -65,7 +65,7 @@ std::shared_ptr<CreateEmployeeQueryMessage> CreateEmployeeQueryMessage::create(
     const std::string& name) {
     requireValue(email, "CREATE_EMPLOYEE requires an email");
     requireValue(name, "CREATE_EMPLOYEE requires a name");
-    auto message = makePublicMessage(sharedmodel::ProtocolAction::CREATE_EMPLOYEE);
+    auto message = makePublicMessage(sharedmodel::PublicAction::CREATE_EMPLOYEE);
     message->add_data[sharedmodel::AddDataEmail] = email;
     message->add_data[sharedmodel::AddDataName] = name;
     return submitQuery(std::shared_ptr<CreateEmployeeQueryMessage>{
@@ -85,7 +85,7 @@ std::shared_ptr<RegisterCompanyQueryMessage> RegisterCompanyQueryMessage::create
     requireValue(adminLogin, "REGISTER_COMPANY requires an admin login");
     requireValue(adminEmail, "REGISTER_COMPANY requires an admin email");
     requireValue(adminPassword, "REGISTER_COMPANY requires an admin password");
-    auto message = makePublicMessage(sharedmodel::ProtocolAction::REGISTER_COMPANY);
+    auto message = makePublicMessage(sharedmodel::PublicAction::REGISTER_COMPANY);
     message->add_data[sharedmodel::AddDataCompanyName] = companyName;
     message->add_data[sharedmodel::AddDataAdminLogin] = adminLogin;
     message->add_data[sharedmodel::AddDataAdminEmail] = adminEmail;
@@ -100,7 +100,7 @@ RegisterCompanyQueryMessage::RegisterCompanyQueryMessage(
 
 std::shared_ptr<GetUpdateQueryMessage> GetUpdateQueryMessage::create(const std::string& appVersion) {
     requireValue(appVersion, "GET_UPDATE requires an application version");
-    auto message = makePublicMessage(sharedmodel::ProtocolAction::GET_UPDATE);
+    auto message = makePublicMessage(sharedmodel::PublicAction::GET_UPDATE);
     message->add_data[sharedmodel::AddDataAppVersion] = appVersion;
     return submitQuery(std::shared_ptr<GetUpdateQueryMessage>{new GetUpdateQueryMessage(std::move(message))});
 }
@@ -112,7 +112,7 @@ std::shared_ptr<sharedmodel::UniterMessage> makeMigrationsMessage(
     const std::string& dataModelVersion,
     const char* target) {
     requireValue(dataModelVersion, "GET_MIGRATIONS requires a data model version");
-    auto message = makePublicMessage(sharedmodel::ProtocolAction::GET_MIGRATIONS);
+    auto message = makePublicMessage(sharedmodel::PublicAction::GET_MIGRATIONS);
     message->add_data[sharedmodel::AddDataDataModelVersion] = dataModelVersion;
     message->add_data[sharedmodel::AddDataMigrationTarget] = target;
     return message;
@@ -146,7 +146,7 @@ std::shared_ptr<PublicFileAccessQueryMessage> PublicFileAccessQueryMessage::crea
     const std::string& objectKey,
     PublicFileAccessMode mode) {
     requireValue(objectKey, "PUBLIC FILE_ACCESS requires an object key");
-    auto message = makePublicMessage(sharedmodel::ProtocolAction::FILE_ACCESS);
+    auto message = makePublicMessage(sharedmodel::PublicAction::FILE_ACCESS);
     message->add_data[sharedmodel::AddDataObjectKey] = objectKey;
     message->add_data[sharedmodel::AddDataFileAccessMode] =
         mode == PublicFileAccessMode::READ

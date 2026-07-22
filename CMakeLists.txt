@@ -1,5 +1,5 @@
 # Versioning
-project(netbridge VERSION 0.5.0 LANGUAGES CXX)
+project(netbridge VERSION 0.6.0 LANGUAGES CXX)
 
 # Sources
 include(cmake/sources.cmake)
@@ -29,14 +29,15 @@ target_include_directories(netbridge
 target_link_libraries(netbridge
     ${NETBRIDGE_TARGET_SCOPE}
         sharedmodel
+        syspilot
 )
 
 # DevKit Usage
 if(NETBRIDGE_COMPILE_SOURCES)
     if(DEBUG_BUILD AND COMMAND devkit_use_qt_shared)
-        devkit_use_qt_shared(netbridge Core)
+        devkit_use_qt_shared(netbridge Core Network)
     elseif(RELEASE_BUILD AND COMMAND devkit_use_qt_static)
-        devkit_use_qt_static(netbridge Core)
+        devkit_use_qt_static(netbridge Core Network)
     endif()
 endif()
 

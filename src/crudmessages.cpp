@@ -30,7 +30,6 @@ std::shared_ptr<sharedmodel::UniterMessage> makeCrudMessage(
         ? std::optional<uint64_t>{resource->key.subsystem.get_genid()}
         : std::nullopt;
     message->crudact = action;
-    message->action = sharedmodel::ProtocolAction::NONE;
     message->status = status;
     message->resource = std::move(resource);
     if (transactionId) {
