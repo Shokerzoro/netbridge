@@ -21,8 +21,10 @@ std::shared_ptr<sharedmodel::UniterMessage> responseFor(
     auto response = std::make_shared<sharedmodel::UniterMessage>();
     response->endpoint = request->endpoint;
     response->subsystem = request->subsystem;
-    response->action = request->action;
     response->crudact = request->crudact;
+    response->publicact = request->publicact;
+    response->tenantact = request->tenantact;
+    response->filestorageact = request->filestorageact;
     response->status = status;
     response->error = error;
     response->sequence_id = request->sequence_id;
@@ -94,8 +96,8 @@ TEST_F(CrudHandlerTest, CommitsSeveralExplicitResourcesInOneServerTransaction)
 
     ASSERT_TRUE(handler.commit());
     ASSERT_EQ(tenant_messages.size(), 1U);
-    EXPECT_EQ(tenant_messages.front()->action,
-              sharedmodel::ProtocolAction::BEGIN_TRANSACTION);
+    EXPECT_EQ(tenant_messages.front()->tenantact,
+              sharedmodel::TenantAction::BEGIN_TRANSACTION);
 
     acceptBegin();
     ASSERT_EQ(crud_messages.size(), 1U);
@@ -111,8 +113,8 @@ TEST_F(CrudHandlerTest, CommitsSeveralExplicitResourcesInOneServerTransaction)
 
     acceptCrud(1);
     ASSERT_EQ(tenant_messages.size(), 2U);
-    EXPECT_EQ(tenant_messages.back()->action,
-              sharedmodel::ProtocolAction::END_TRANSACTION);
+    EXPECT_EQ(tenant_messages.back()->tenantact,
+              sharedmodel::TenantAction::END_TRANSACTION);
     EXPECT_EQ(tenant_messages.back()->add_data.at(sharedmodel::AddDataTransactionAction),
               sharedmodel::AddDataTransactionCommit);
 
@@ -164,7 +166,7 @@ TEST(CrudHandlerSynchronousTransport, DoesNotLoseImmediateResponses)
     QObject::connect(&bridge, &netbridge::NetBridge::signalSendTenantMessage,
                      &context, [&bridge](const auto& request) {
         auto response = responseFor(request, sharedmodel::MessageStatus::SUCCESS);
-        if (request->action == sharedmodel::ProtocolAction::BEGIN_TRANSACTION) {
+        if (request->tenantact == sharedmodel::TenantAction::BEGIN_TRANSACTION) {
             response->add_data[sharedmodel::AddDataTransactionId] = "sync-transaction";
         }
         bridge.onReceiveTenantMessage(response);
