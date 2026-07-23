@@ -10,7 +10,8 @@ auto employee = std::make_shared<sharedmodel::Employee>(); // UUIDv7 generated
 employee->login = "engineer";
 
 auto assignment = std::make_shared<sharedmodel::EmployeeAssignment>();
-assignment->employee_id = employee->id;
+employee->assignments.push_back(
+    sharedmodel::EmployeeAssignmentUuid{assignment->id});
 
 auto* transaction = new netbridge::CrudHandler(parent);
 connect(transaction, &netbridge::CrudHandler::signalFinished,
